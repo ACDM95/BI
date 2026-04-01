@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Bon d'intervention</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{--primary:#2f2f2f;--muted:#f5f5f5;--text:#222}
+    body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:var(--muted);color:var(--text);font-size:16px}
+    .container{max-width:1000px;margin:auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+    .header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--primary);padding-bottom:10px;margin-bottom:15px}
+    .logo-box{width:220px;height:70px;display:flex;align-items:center;justify-content:center;background:#eee;border-radius:4px;overflow:hidden}
+    .logo-box img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+    .logo-controls{display:flex;flex-direction:column;gap:6px}
+    h1{font-size:28px;color:var(--primary);margin:0;font-weight:700}
+    .form-group{margin-bottom:18px}
+    label{display:block;font-weight:600;font-size:16px;margin-bottom:8px}
+    input,textarea,select{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:16px;line-height:1.5}
+    textarea{resize:vertical;min-height:140px}
+    .num-auto{background:#e9ecef;font-weight:700;font-size:18px}
+    .row{display:flex;gap:10px}
+    .row .col{flex:1}
+    .btn-bar{margin-top:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    button{padding:10px 16px;border:none;border-radius:6px;cursor:pointer;color:#fff;background:var(--primary)}
+    button.secondary{background:#6c757d}
+    button.ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+    .small{font-size:13px;color:#555}
+    .logo-controls label.small,.photo-controls label.small{color:#222;font-weight:700}
+    .saved-msg{color:green;font-weight:700;margin-left:8px}
+    .bons-list{margin-top:12px;border-top:1px dashed #ddd;padding-top:10px}
+    .bon-item{padding:8px;border:1px solid #eee;border-radius:4px;margin-bottom:8px;background:#fafafa}
+    .hidden{display:none}
+    .error{color:#b00020;font-weight:700}
+    .print-value{display:none}
+    .pdf-clone{background:#ffffff !important;width:210mm;box-sizing:border-box;padding:12mm;margin:0 auto;color:#000}
+    .pdf-clone .logo-box{background:transparent !important}
+    @media print{
+      body{margin:0;background:#fff;color:#000}
+      .btn-bar{display:none !important}
+      .container{box-shadow:none;padding:12mm}
+      h1{font-size:18px}
+      .small,.bons-list{display:none !important}
+      input,textarea,select,.photo-controls,.logo-controls{display:none !important}
+      .print-value{display:block !important;margin-bottom:6px;font-size:14px;color:#000}
+      .logo-box{background:transparent}
+      .photo-thumb{display:inline-block;margin-right:8px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main" aria-labelledby="title">
+    <div class="header">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="logo-box" id="logoBox" role="img" aria-label="Logo de l'entreprise">
+          <img src="./logo.png" alt="Logo" id="logoImg">
+        </div>
+        <div class="logo-controls">
+          <label class="small">Logo</label>
+          <input type="file" id="logoInput" accept="image/*" style="width:220px">
+        </div>
+      </div>
+      <h1 id="title">BON D'INTERVENTION</h1>
+    </div>
+
+    <form id="bonForm" autocomplete="off" novalidate>
+      <div class="form-group">
+        <label for="numBon">Numéro de bon</label>
+        <input type="text" id="numBon" class="num-auto" readonly aria-readonly="true" aria-describedby="numHelp">
+        <span class="print-value" id="print_num"></span>
+      </div>
+
+      <div class="row" aria-hidden="false">
+        <div class="form-group col">
+          <label for="date">Date</label>
+          <input type="date" id="date" required aria-required="true">
+          <span class="print-value" id="print_date"></span>
+        </div>
+        <div class="form-group col">
+          <label for="heureArrivee">Heure d'arrivée</label>
+          <input type="time" id="heureArrivee" aria-label="Heure d'arrivée">
+          <span class="print-value" id="print_arrivee"></span>
+        </div>
+        <div class="form-group col">
+          <label for="heureDepart">Heure de départ</label>
+          <input type="time" id="heureDepart" aria-label="Heure de départ">
+          <span class="print-value" id="print_depart"></span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="client">Client</label>
+        <input type="text" id="client" list="clientList" autocomplete="off" aria-autocomplete="list" aria-describedby="clientHelp">
+        <datalist id="clientList"></datalist>
+        <span class="print-value" id="print_client"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="adresse">Adresse</label>
+        <input type="text" id="adresse" list="adresseList" autocomplete="off" aria-describedby="adresseHelp">
+        <datalist id="adresseList"></datalist>
+        <span class="print-value" id="print_adresse"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description de l'intervention</label>
+        <textarea id="description" rows="5" aria-label="Description de l'intervention"></textarea>
+        <span class="print-value" id="print_description"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="signature">Signature client</label>
+        <textarea id="signature" rows="3" placeholder="Le client peut écrire ici"></textarea>
+        <span class="print-value" id="print_signature" style="white-space:pre-wrap"></span>
+      </div>
+
+      <div class="btn-bar" role="toolbar" aria-label="Actions">
+        <button type="button" id="newBtn" title="Créer un nouveau bon">Nouveau bon</button>
+        <button type="button" class="secondary" id="pdfBtn" title="Générer un PDF nommé selon le numéro du bon">Télécharger PDF</button>
+        <button type="button" class="ghost" id="saveBtn" title="Enregistrer ce bon localement">Enregistrer</button>
+        <button type="button" id="resetBtn" title="Réinitialiser compteur, clients et adresses">Réinitialiser données</button>
+        <span id="status" class="saved-msg" aria-live="polite"></span>
+      </div>
+    </form>
+
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    function getCounter(){ return parseInt(localStorage.getItem('bi_counter') || '0', 10); }
+    function setCounter(v){ localStorage.setItem('bi_counter', String(v)); }
+    function getClientsMap(){ const raw = localStorage.getItem('bi_clients'); if(!raw) return {}; try{ return JSON.parse(raw); }catch(e){ return {}; } }
+    function setClientsMap(map){ localStorage.setItem('bi_clients', JSON.stringify(map)); }
+    function getBons(){ const raw = localStorage.getItem('bi_bons'); if(!raw) return []; try{ return JSON.parse(raw); }catch(e){ return []; } }
+    function setBons(list){ localStorage.setItem('bi_bons', JSON.stringify(list)); }
+
+    function resetAllData(){
+      try{
+        setCounter(0);
+        setClientsMap({});
+        setBons([]);
+        localStorage.removeItem('bi_logo');
+        console.info('Données réinitialisées : compteur, clients, bons et logo supprimés.');
+      }catch(e){
+        console.warn('Impossible de réinitialiser toutes les données :', e);
+      }
+    }
+
+    function setLogoDataUrl(dataUrl){
+      try{ localStorage.setItem('bi_logo', dataUrl); }catch(e){ console.warn('Impossible de sauvegarder le logo (quota localStorage).'); }
+    }
+    function getLogoDataUrl(){ return localStorage.getItem('bi_logo') || null; }
+
+    function peekNextNumber(){ return getCounter() + 1; }
+    function consumeNextNumber(){ const next = getCounter() + 1; setCounter(next); return next; }
+    function formatNumBon(next, dateObj){
+      const d = String(dateObj.getDate()).padStart(2,'0');
+      const m = String(dateObj.getMonth()+1).padStart(2,'0');
+      const y = dateObj.getFullYear();
+      return `BI-${d}-${m}-${y}-${String(next).padStart(2,'0')}`;
+    }
+    function formatLocalDateForInput(dateObj){
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    function initNumberAndDate(increment = false){
+      const today = new Date();
+      document.getElementById('date').value = formatLocalDateForInput(today);
+      const next = increment ? consumeNextNumber() : peekNextNumber();
+      document.getElementById('numBon').value = formatNumBon(next, today);
+      document.getElementById('print_num').textContent = document.getElementById('numBon').value;
+    }
+
+    function refreshClientDatalist(){
+      const map = getClientsMap();
+      const dl = document.getElementById('clientList');
+      dl.innerHTML = '';
+      Object.keys(map).sort().forEach(name=>{
+        const opt = document.createElement('option'); opt.value = name; dl.appendChild(opt);
+      });
+    }
+    function refreshAdresseDatalist(clientName){
+      const dl = document.getElementById('adresseList');
+      if(!dl) return;
+      dl.innerHTML = '';
+      const map = getClientsMap();
+      const list = map[clientName] || [];
+      list.forEach(addr=>{ const opt = document.createElement('option'); opt.value = addr; dl.appendChild(opt); });
+    }
+    function saveClientAndAdresse(){
+      const client = document.getElementById('client').value.trim();
+      const adresse = document.getElementById('adresse').value.trim();
+      if(!client) return;
+      const map = getClientsMap();
+      if(!map[client]) map[client] = [];
+      if(adresse && !map[client].includes(adresse)) map[client].push(adresse);
+      setClientsMap(map);
+      refreshClientDatalist();
+      refreshAdresseDatalist(client);
+    }
+
+    let currentPhotos = [];
+    function updatePhotosPreview(){}
+    function handlePhotoFiles(){ }
+    function togglePhotosSectionVisibility(){}
+
+    function collectFormData(){
+      return {
+        num: document.getElementById('numBon').value,
+        date: document.getElementById('date').value,
+        arrivee: document.getElementById('heureArrivee').value,
+        depart: document.getElementById('heureDepart').value,
+        client: document.getElementById('client').value.trim(),
+        adresse: document.getElementById('adresse').value.trim(),
+        signature: document.getElementById('signature').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    function saveBonLocal(){
+      const bon = collectFormData();
+      if(!bon.client){ showStatus('Veuillez renseigner le client avant d\'enregistrer.', true); return false; }
+      const list = getBons(); list.unshift(bon); setBons(list); showStatus('Bon enregistré localement.'); renderBonsList(); saveClientAndAdresse(); return true;
+    }
+
+    function renderBonsList(){ return; }
+
+    function populateFormFromBon(bon){
+      document.getElementById('numBon').value = bon.num;
+      document.getElementById('date').value = bon.date;
+      document.getElementById('heureArrivee').value = bon.arrivee || '';
+      document.getElementById('heureDepart').value = bon.depart || '';
+      document.getElementById('client').value = bon.client || '';
+      refreshAdresseDatalist(bon.client || '');
+      document.getElementById('adresse').value = bon.adresse || '';
+      document.getElementById('description').value = bon.description || '';
+      updatePrintSpans();
+      showStatus('Bon chargé dans le formulaire.');
+    }
+
+    function validateForm(){
+      const date = document.getElementById('date').value;
+      const arrivee = document.getElementById('heureArrivee').value;
+      const depart = document.getElementById('heureDepart').value;
+      const today = new Date().toISOString().split('T')[0];
+      if(date > today){ showStatus('La date ne peut pas être dans le futur.', true); return false; }
+      if(arrivee && depart && depart <= arrivee){ showStatus('L\'heure de départ doit être après l\'heure d\'arrivée.', true); return false; }
+      const client = document.getElementById('client').value.trim();
+      if(!client){ showStatus('Veuillez renseigner le client.', true); return false; }
+      return true;
+    }
+
+    function showStatus(msg, isError){
+      const s = document.getElementById('status'); s.textContent = msg; s.style.color = isError ? '#b00020' : 'green';
+      setTimeout(()=>{ s.textContent = ''; }, 4000);
+    }
+    function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+
+    const logoImg = document.getElementById('logoImg');
+    const logoInput = document.getElementById('logoInput');
+
+    function loadStoredLogo(){
+      const data = getLogoDataUrl();
+      if(data){
+        logoImg.src = data;
+      } else {
+        checkLogoPath();
+      }
+    }
+
+    logoInput.addEventListener('change', (e)=>{
+      const f = e.target.files && e.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = function(ev){
+        const dataUrl = ev.target.result;
+        logoImg.src = dataUrl;
+        setLogoDataUrl(dataUrl);
+        showStatus('Logo chargé et sauvegardé localement.');
+      };
+      reader.readAsDataURL(f);
+      e.target.value = '';
+    });
+
+    logoImg.addEventListener('error', ()=>{
+      const box = document.getElementById('logoBox');
+      box.innerHTML = '<svg width="220" height="70" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo"><rect width="100%" height="100%" fill="#fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#333" font-weight="700" font-size="18">LOGO</text></svg>';
+    });
+
+    function checkLogoPath(){
+      const src = document.getElementById('logoImg').src;
+      const img = new Image();
+      img.onload = ()=>{};
+      img.onerror = ()=>{ console.warn('Logo introuvable : placez "logo.png" dans le même dossier que ce fichier HTML, ou chargez un logo via le champ "Logo (optionnel)".'); };
+      img.src = src;
+    }
+
+    async function generatePdfNamed(filename){
+      if(!window.jspdf || !window.html2canvas){
+        showStatus('Erreur : bibliothèque PDF non chargée.', true);
+        console.error('jsPDF ou html2canvas non trouvé.');
+        return false;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const container = document.querySelector('.container');
+      const clone = container.cloneNode(true);
+
+      clone.querySelectorAll('.btn-bar, .logo-controls, #status').forEach(el => el.remove());
+
+
+      const selectors = ['#numBon','#date','#heureArrivee','#heureDepart','#client','#adresse','#signature','#description'];
+      selectors.forEach(sel => {
+        const inp = clone.querySelector(sel);
+        if(inp){
+          const div = document.createElement('div');
+          div.textContent = inp.value || '';
+          div.style.whiteSpace = 'pre-wrap';
+          div.style.minHeight = '24px';
+          div.style.padding = '6px 0';
+          inp.parentNode.replaceChild(div, inp);
+        }
+      });
+
+      clone.style.position = 'fixed';
+      clone.style.left = '0';
+      clone.style.top = '0';
+      clone.style.zIndex = '-1';
+      clone.style.background = '#fff';
+      clone.style.width = '920px';
+      document.body.appendChild(clone);
+
+      try {
+        const canvas = await html2canvas(clone, {
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          scale: 1.5,
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pageWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+        if(imgHeight <= pageHeight){
+          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+        } else {
+          let heightLeft = imgHeight;
+          let position = 0;
+          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+          while(heightLeft > 0){
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+          }
+        }
+
+        pdf.save(filename);
+        return true;
+      } catch (err) {
+        console.error('Erreur PDF:', err);
+        showStatus('Erreur lors de la génération du PDF.', true);
+        alert('Erreur PDF : ' + err.message);
+        return false;
+      } finally {
+        document.body.removeChild(clone);
+      }
+    }
+
+    function updatePrintSpans(){
+      document.getElementById('print_num').textContent = document.getElementById('numBon').value || '';
+      document.getElementById('print_date').textContent = document.getElementById('date').value || '';
+      document.getElementById('print_arrivee').textContent = document.getElementById('heureArrivee').value || '';
+      document.getElementById('print_depart').textContent = document.getElementById('heureDepart').value || '';
+      document.getElementById('print_client').textContent = document.getElementById('client').value || '';
+      document.getElementById('print_adresse').textContent = document.getElementById('adresse').value || '';
+      document.getElementById('print_signature').textContent = document.getElementById('signature').value || '';
+      document.getElementById('print_description').textContent = document.getElementById('description').value || '';
+    }
+
+    async function onPdfButton(){
+      if(!validateForm()) return;
+      updatePrintSpans();
+      const num = document.getElementById('numBon').value || 'bon';
+      const safe = num.replace(/[^a-zA-Z0-9_\-\.]/g,'_');
+      const filename = `${safe}.pdf`;
+      saveClientAndAdresse();
+      saveBonLocal();
+      const ok = await generatePdfNamed(filename);
+      if(!ok) return;
+      initNumberAndDate(true);
+      document.getElementById('bonForm').reset();
+      refreshClientDatalist();
+      showStatus('PDF généré et nouveau numéro prêt.');
+    }
+
+    window.addEventListener('load', ()=>{
+      initNumberAndDate(false);
+      refreshClientDatalist();
+      loadStoredLogo();
+    });
+
+    document.getElementById('client').addEventListener('change', e=>{ refreshAdresseDatalist(e.target.value.trim()); saveClientAndAdresse(); });
+    document.getElementById('adresse').addEventListener('change', saveClientAndAdresse);
+
+    document.getElementById('newBtn').addEventListener('click', ()=>{
+      document.getElementById('bonForm').reset();
+      currentPhotos = []; updatePhotosPreview();
+      initNumberAndDate(true);
+      refreshClientDatalist();
+      document.getElementById('adresseList').innerHTML = '';
+      showStatus('Nouveau bon prêt.');
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
+      if(!validateForm()) return;
+      saveBonLocal();
+    });
+
+    document.getElementById('pdfBtn').addEventListener('click', onPdfButton);
+
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      if(confirm('Confirmer la réinitialisation : compteur, clients, adresses et bons seront supprimés.')){
+        resetAllData();
+        initNumberAndDate(false);
+        refreshClientDatalist();
+        showStatus('Données réinitialisées.');
+      }
+    });
+
+    document.getElementById('bonForm').addEventListener('submit', (e)=>{ e.preventDefault(); });
+
+    window.addEventListener('keydown', (e)=>{
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); document.getElementById('saveBtn').click(); }
+    });
+  </script>
+</body>
+</html>
