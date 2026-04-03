@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -9,7 +8,7 @@
     :root{--primary:#2f2f2f;--muted:#f5f5f5;--text:#222}
     body{font-family:Arial,Helvetica,sans-serif;margin:20px;background:var(--muted);color:var(--text);font-size:16px}
     .container{max-width:1000px;margin:auto;background:#fff;padding:30px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.12)}
-    .header{display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid var(--primary);padding-bottom:15px;margin-bottom:20px}
+    .header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--primary);padding-bottom:10px;margin-bottom:15px}
     .logo-box{width:220px;height:70px;display:flex;align-items:center;justify-content:center;background:#eee;border-radius:4px;overflow:hidden}
     .logo-box img{max-width:100%;max-height:100%;object-fit:contain;display:block}
     .logo-controls{display:flex;flex-direction:column;gap:6px}
@@ -26,189 +25,212 @@
     button.secondary{background:#6c757d}
     button.ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
     .small{font-size:13px;color:#555}
+    .logo-controls label.small,.photo-controls label.small{color:#222;font-weight:700}
     .saved-msg{color:green;font-weight:700;margin-left:8px}
+    .bons-list{margin-top:12px;border-top:1px dashed #ddd;padding-top:10px}
+    .bon-item{padding:8px;border:1px solid #eee;border-radius:4px;margin-bottom:8px;background:#fafafa}
     .hidden{display:none}
     .error{color:#b00020;font-weight:700}
-    .print-value{display:none;white-space:pre-wrap;font-size:16px;line-height:1.5}
+    .print-value{display:none}
+    .pdf-clone{background:#ffffff !important;width:210mm;box-sizing:border-box;padding:12mm;margin:0 auto;color:#000}
+    .pdf-clone .logo-box{background:transparent !important}
     @media print{
-      body{margin:0;background:#fff;color:#000;font-size:16px}
-      .btn-bar,.logo-controls{display:none !important}
-      .container{box-shadow:none;padding:15mm;max-width:none}
-      h1{font-size:24px !important}
-      .small{display:none !important}
-      input, textarea, select{display: none !important}
-      .print-value{display:block !important;margin-bottom:8px;font-size:16px;color:#000;line-height:1.5}
+      body{margin:0;background:#fff;color:#000}
+      .btn-bar{display:none !important}
+      .container{box-shadow:none;padding:12mm}
+      h1{font-size:18px}
+      .small,.bons-list{display:none !important}
+      input,textarea,select,.photo-controls,.logo-controls{display:none !important}
+      .print-value{display:block !important;margin-bottom:6px;font-size:14px;color:#000}
       .logo-box{background:transparent}
+      .photo-thumb{display:inline-block;margin-right:8px}
     }
   </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
 <body>
-  <div class="container">
+  <div class="container" role="main" aria-labelledby="title">
     <div class="header">
       <div style="display:flex;gap:12px;align-items:center">
-        <div class="logo-box" id="logoBox">
+        <div class="logo-box" id="logoBox" role="img" aria-label="Logo de l'entreprise">
           <img src="./logo.png" alt="Logo" id="logoImg">
         </div>
         <div class="logo-controls">
+          <label class="small">Logo</label>
           <input type="file" id="logoInput" accept="image/*" style="width:220px">
         </div>
       </div>
-      <h1>BON D'INTERVENTION</h1>
+      <h1 id="title">BON D'INTERVENTION</h1>
     </div>
 
     <form id="bonForm" autocomplete="off" novalidate>
       <div class="form-group">
         <label for="numBon">Numéro de bon</label>
-        <input type="text" id="numBon" class="num-auto" readonly>
+        <input type="text" id="numBon" class="num-auto" readonly aria-readonly="true" aria-describedby="numHelp">
         <span class="print-value" id="print_num"></span>
       </div>
 
-      <div class="row">
+      <div class="row" aria-hidden="false">
         <div class="form-group col">
           <label for="date">Date</label>
-          <input type="date" id="date" required>
+          <input type="date" id="date" required aria-required="true">
           <span class="print-value" id="print_date"></span>
         </div>
         <div class="form-group col">
           <label for="heureArrivee">Heure d'arrivée</label>
-          <input type="time" id="heureArrivee">
+          <input type="time" id="heureArrivee" aria-label="Heure d'arrivée">
           <span class="print-value" id="print_arrivee"></span>
         </div>
         <div class="form-group col">
           <label for="heureDepart">Heure de départ</label>
-          <input type="time" id="heureDepart">
+          <input type="time" id="heureDepart" aria-label="Heure de départ">
           <span class="print-value" id="print_depart"></span>
         </div>
       </div>
 
       <div class="form-group">
         <label for="client">Client</label>
-        <input type="text" id="client" list="clientList" autocomplete="off">
+        <input type="text" id="client" list="clientList" autocomplete="off" aria-autocomplete="list" aria-describedby="clientHelp">
         <datalist id="clientList"></datalist>
         <span class="print-value" id="print_client"></span>
       </div>
 
       <div class="form-group">
         <label for="adresse">Adresse</label>
-        <input type="text" id="adresse" list="adresseList" autocomplete="off">
+        <input type="text" id="adresse" list="adresseList" autocomplete="off" aria-describedby="adresseHelp">
         <datalist id="adresseList"></datalist>
         <span class="print-value" id="print_adresse"></span>
       </div>
 
       <div class="form-group">
         <label for="description">Description de l'intervention</label>
-        <textarea id="description" rows="6"></textarea>
+        <textarea id="description" rows="5" aria-label="Description de l'intervention"></textarea>
         <span class="print-value" id="print_description"></span>
       </div>
 
       <div class="form-group">
         <label for="signature">Signature client</label>
         <textarea id="signature" rows="3" placeholder="Le client peut écrire ici"></textarea>
-        <span class="print-value" id="print_signature"></span>
+        <span class="print-value" id="print_signature" style="white-space:pre-wrap"></span>
       </div>
 
-      <div class="btn-bar">
-        <button type="button" id="newBtn">Nouveau bon</button>
-        <button type="button" class="secondary" id="pdfBtn">Télécharger PDF</button>
-        <button type="button" class="ghost" id="saveBtn">Enregistrer</button>
-        <button type="button" id="resetBtn">Réinitialiser données</button>
-        <span id="status" class="saved-msg"></span>
+      <div class="btn-bar" role="toolbar" aria-label="Actions">
+        <button type="button" id="newBtn" title="Créer un nouveau bon">Nouveau bon</button>
+        <button type="button" class="secondary" id="pdfBtn" title="Générer un PDF nommé selon le numéro du bon">Télécharger PDF</button>
+        <button type="button" class="ghost" id="saveBtn" title="Enregistrer ce bon localement">Enregistrer</button>
+        <button type="button" id="resetBtn" title="Réinitialiser compteur, clients et adresses">Réinitialiser données</button>
+        <span id="status" class="saved-msg" aria-live="polite"></span>
       </div>
     </form>
+
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    const SUPABASE_URL = 'https://uihdpyklpnwvwdhqsyto.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_zz_wkJvicjQbl5OQUUWRsA_9BtFjYsX';
-    const { createClient } = supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = "https://uihdpyklpnwvwdhqsyto.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_zz_wkJvicjQbl5OQUUWRsA_9BtFjYsX";
+const supabaseClient = (window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
-    async function getCounter(){ try{ const { data } = await supabaseClient.from('settings').select('counter').eq('id', 'counter').single(); return data?.counter || 0; } catch{ return 0; } }
-      try {
-        const { data } = await supabaseClient.from('settings').select('counter').eq('id', 'counter').single();
-        return data ? data.counter : 0;
-      } catch(e) { return 0; }
+async function saveBonToSupabase(bon){
+  if(!supabaseClient) return { skipped:true };
+  const payload = {
+    num_bon: bon.num || '',
+    date_intervention: bon.date || null,
+    heure_arrivee: bon.arrivee || null,
+    heure_depart: bon.depart || null,
+    client: bon.client || '',
+    adresse: bon.adresse || '',
+    signature: bon.signature || '',
+    description: bon.description || '',
+    created_at_client: bon.createdAt || new Date().toISOString()
+  };
+  const { error } = await supabaseClient.from('bons_intervention').insert([payload]);
+  if(error) throw error;
+  return { ok:true };
+}
+
+    function getCounter(){ return parseInt(localStorage.getItem('bi_counter') || '0', 10); }
+    function setCounter(v){ localStorage.setItem('bi_counter', String(v)); }
+    function getClientsMap(){ const raw = localStorage.getItem('bi_clients'); if(!raw) return {}; try{ return JSON.parse(raw); }catch(e){ return {}; } }
+    function setClientsMap(map){ localStorage.setItem('bi_clients', JSON.stringify(map)); }
+    function getBons(){ const raw = localStorage.getItem('bi_bons'); if(!raw) return []; try{ return JSON.parse(raw); }catch(e){ return []; } }
+    function setBons(list){ localStorage.setItem('bi_bons', JSON.stringify(list)); }
+
+    function resetAllData(){
+      try{
+        setCounter(0);
+        setClientsMap({});
+        setBons([]);
+        localStorage.removeItem('bi_logo');
+        console.info('Données réinitialisées : compteur, clients, bons et logo supprimés.');
+      }catch(e){
+        console.warn('Impossible de réinitialiser toutes les données :', e);
+      }
     }
 
-    async function setCounter(v){ 
-      await supabaseClient.from('settings').upsert({ id: 'counter', counter: v }).catch(() => {});
+    function setLogoDataUrl(dataUrl){
+      try{ localStorage.setItem('bi_logo', dataUrl); }catch(e){ console.warn('Impossible de sauvegarder le logo (quota localStorage).'); }
     }
+    function getLogoDataUrl(){ return localStorage.getItem('bi_logo') || null; }
 
-    async function getClientsMap(){ 
-      try {
-        const { data } = await supabaseClient.from('clients').select('*');
-        const map = {};
-        data?.forEach(row => map[row.name] = row.addresses || []);
-        return map;
-      } catch(e) { return {}; }
-    }
-
-    async function setClientsMap(map){ 
-      const clients = Object.entries(map).map(([name, addresses]) => ({ name, addresses }));
-      await supabaseClient.from('clients').upsert(clients).catch(() => {});
-    }
-
-    async function getBons(){ 
-      try {
-        const { data } = await supabaseClient.from('bons').select('*').order('created_at', { ascending: false });
-        return data || [];
-      } catch(e) { return []; }
-    }
-
-    async function setBons(list){ 
-      await supabaseClient.from('bons').upsert(list).catch(() => {});
-    }
-
-    async function peekNextNumber(){ return (await getCounter()) + 1; }
-    async function consumeNextNumber(){ const current = await getCounter(); const next = current + 1; await setCounter(next); return next; }
+    function peekNextNumber(){ return getCounter() + 1; }
+    function consumeNextNumber(){ const next = getCounter() + 1; setCounter(next); return next; }
     function formatNumBon(next, dateObj){
       const d = String(dateObj.getDate()).padStart(2,'0');
       const m = String(dateObj.getMonth()+1).padStart(2,'0');
       const y = dateObj.getFullYear();
       return `BI-${d}-${m}-${y}-${String(next).padStart(2,'0')}`;
     }
-
-    async function initNumberAndDate(increment = false){ try {
+    function formatLocalDateForInput(dateObj){
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    function initNumberAndDate(increment = false){
       const today = new Date();
-      document.getElementById('date').value = today.toISOString().split('T')[0];
-      const next = increment ? await consumeNextNumber() : await peekNextNumber();
+      document.getElementById('date').value = formatLocalDateForInput(today);
+      const next = increment ? consumeNextNumber() : peekNextNumber();
       document.getElementById('numBon').value = formatNumBon(next, today);
-      document.getElementById('print_num').textContent = document.getElementById('numBon').value; } catch(e){} }
+      document.getElementById('print_num').textContent = document.getElementById('numBon').value;
     }
 
-    async function refreshClientDatalist(){
-      const map = await getClientsMap();
+    function refreshClientDatalist(){
+      const map = getClientsMap();
       const dl = document.getElementById('clientList');
       dl.innerHTML = '';
       Object.keys(map).sort().forEach(name=>{
         const opt = document.createElement('option'); opt.value = name; dl.appendChild(opt);
       });
     }
-
-    async function refreshAdresseDatalist(clientName){
+    function refreshAdresseDatalist(clientName){
       const dl = document.getElementById('adresseList');
       if(!dl) return;
       dl.innerHTML = '';
-      const map = await getClientsMap();
+      const map = getClientsMap();
       const list = map[clientName] || [];
       list.forEach(addr=>{ const opt = document.createElement('option'); opt.value = addr; dl.appendChild(opt); });
     }
-
-    async function saveClientAndAdresse(){
+    function saveClientAndAdresse(){
       const client = document.getElementById('client').value.trim();
       const adresse = document.getElementById('adresse').value.trim();
       if(!client) return;
-      const map = await getClientsMap();
+      const map = getClientsMap();
       if(!map[client]) map[client] = [];
       if(adresse && !map[client].includes(adresse)) map[client].push(adresse);
-      await setClientsMap(map);
-      await refreshClientDatalist().catch(() => refreshClientDatalist = async () => {});
-      await refreshAdresseDatalist(client);
+      setClientsMap(map);
+      refreshClientDatalist();
+      refreshAdresseDatalist(client);
     }
+
+    let currentPhotos = [];
+    function updatePhotosPreview(){}
+    function handlePhotoFiles(){ }
+    function togglePhotosSectionVisibility(){}
 
     function collectFormData(){
       return {
@@ -224,15 +246,25 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       };
     }
 
-    async function saveBonLocal(){
+    function saveBonLocal(){
       const bon = collectFormData();
       if(!bon.client){ showStatus('Veuillez renseigner le client avant d\'enregistrer.', true); return false; }
-      const list = await getBons();
-      list.unshift(bon);
-      await setBons(list);
-      showStatus('Bon enregistré et synchronisé !');
-      await saveClientAndAdresse();
-      return true;
+      const list = getBons(); list.unshift(bon); setBons(list); showStatus('Bon enregistré localement.'); renderBonsList(); saveClientAndAdresse(); return true;
+    }
+
+    function renderBonsList(){ return; }
+
+    function populateFormFromBon(bon){
+      document.getElementById('numBon').value = bon.num;
+      document.getElementById('date').value = bon.date;
+      document.getElementById('heureArrivee').value = bon.arrivee || '';
+      document.getElementById('heureDepart').value = bon.depart || '';
+      document.getElementById('client').value = bon.client || '';
+      refreshAdresseDatalist(bon.client || '');
+      document.getElementById('adresse').value = bon.adresse || '';
+      document.getElementById('description').value = bon.description || '';
+      updatePrintSpans();
+      showStatus('Bon chargé dans le formulaire.');
     }
 
     function validateForm(){
@@ -251,17 +283,17 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       const s = document.getElementById('status'); s.textContent = msg; s.style.color = isError ? '#b00020' : 'green';
       setTimeout(()=>{ s.textContent = ''; }, 4000);
     }
+    function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
 
-    function escapeHtml(str){ if(!str) return ''; return str.replace(/[&<>\"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[m]; }); }
-
-    // Logo handling (reste identique)
     const logoImg = document.getElementById('logoImg');
     const logoInput = document.getElementById('logoInput');
 
     function loadStoredLogo(){
-      const data = localStorage.getItem('bi_logo') || null;
+      const data = getLogoDataUrl();
       if(data){
-        try{ logoImg.src = data; } catch(e){}
+        logoImg.src = data;
+      } else {
+        checkLogoPath();
       }
     }
 
@@ -272,8 +304,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       reader.onload = function(ev){
         const dataUrl = ev.target.result;
         logoImg.src = dataUrl;
-        localStorage.setItem('bi_logo', dataUrl);
-        showStatus('Logo chargé et sauvegardé.');
+        setLogoDataUrl(dataUrl);
+        showStatus('Logo chargé et sauvegardé localement.');
       };
       reader.readAsDataURL(f);
       e.target.value = '';
@@ -281,13 +313,21 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     logoImg.addEventListener('error', ()=>{
       const box = document.getElementById('logoBox');
-      box.innerHTML = '<svg width="220" height="70" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#333" font-weight="700" font-size="18">LOGO</text></svg>';
+      box.innerHTML = '<svg width="220" height="70" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo"><rect width="100%" height="100%" fill="#fff"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#333" font-weight="700" font-size="18">LOGO</text></svg>';
     });
 
-    // PDF generation (reste identique)
+    function checkLogoPath(){
+      const src = document.getElementById('logoImg').src;
+      const img = new Image();
+      img.onload = ()=>{};
+      img.onerror = ()=>{ console.warn('Logo introuvable : placez "logo.png" dans le même dossier que ce fichier HTML, ou chargez un logo via le champ "Logo (optionnel)".'); };
+      img.src = src;
+    }
+
     async function generatePdfNamed(filename){
       if(!window.jspdf || !window.html2canvas){
         showStatus('Erreur : bibliothèque PDF non chargée.', true);
+        console.error('jsPDF ou html2canvas non trouvé.');
         return false;
       }
 
@@ -295,7 +335,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       const container = document.querySelector('.container');
       const clone = container.cloneNode(true);
 
-      clone.querySelectorAll('.btn-bar, .logo-controls label, #status').forEach(el => el.remove());
+      clone.querySelectorAll('.btn-bar, .logo-controls, #status').forEach(el => el.remove());
+
 
       const selectors = ['#numBon','#date','#heureArrivee','#heureDepart','#client','#adresse','#signature','#description'];
       selectors.forEach(sel => {
@@ -378,48 +419,46 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       const num = document.getElementById('numBon').value || 'bon';
       const safe = num.replace(/[^a-zA-Z0-9_\-\.]/g,'_');
       const filename = `${safe}.pdf`;
-      await saveClientAndAdresse();
-      await saveBonLocal();
+      saveClientAndAdresse();
+      saveBonLocal();
       const ok = await generatePdfNamed(filename);
       if(!ok) return;
-      await initNumberAndDate(true);
+      initNumberAndDate(true);
       document.getElementById('bonForm').reset();
       refreshClientDatalist();
       showStatus('PDF généré et nouveau numéro prêt.');
     }
 
-    window.addEventListener('load', async ()=>{ try {
-      await initNumberAndDate(false);
-      await refreshClientDatalist().catch(() => refreshClientDatalist = async () => {});
+    window.addEventListener('load', ()=>{
+      initNumberAndDate(false);
+      refreshClientDatalist();
       loadStoredLogo();
     });
 
-    document.getElementById('client').addEventListener('change', async e=>{ 
-      await refreshAdresseDatalist(e.target.value.trim()); 
-      await saveClientAndAdresse(); 
-    });
+    document.getElementById('client').addEventListener('change', e=>{ refreshAdresseDatalist(e.target.value.trim()); saveClientAndAdresse(); });
     document.getElementById('adresse').addEventListener('change', saveClientAndAdresse);
 
-    document.getElementById('newBtn').addEventListener('click', async ()=>{
+    document.getElementById('newBtn').addEventListener('click', ()=>{
       document.getElementById('bonForm').reset();
-      await initNumberAndDate(true);
-      await refreshClientDatalist().catch(() => refreshClientDatalist = async () => {});
+      currentPhotos = []; updatePhotosPreview();
+      initNumberAndDate(true);
+      refreshClientDatalist();
       document.getElementById('adresseList').innerHTML = '';
       showStatus('Nouveau bon prêt.');
     });
 
-    document.getElementById('saveBtn').addEventListener('click', async ()=>{
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
       if(!validateForm()) return;
-      await saveBonLocal();
+      saveBonLocal();
     });
 
     document.getElementById('pdfBtn').addEventListener('click', onPdfButton);
 
-    document.getElementById('resetBtn').addEventListener('click', async ()=>{
-      if(confirm('Confirmer la réinitialisation : compteur, clients et adresses seront supprimés.')){
-        await resetAllData();
-        await initNumberAndDate(false);
-        await refreshClientDatalist().catch(() => refreshClientDatalist = async () => {});
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      if(confirm('Confirmer la réinitialisation : compteur, clients, adresses et bons seront supprimés.')){
+        resetAllData();
+        initNumberAndDate(false);
+        refreshClientDatalist();
         showStatus('Données réinitialisées.');
       }
     });
@@ -429,18 +468,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     window.addEventListener('keydown', (e)=>{
       if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); document.getElementById('saveBtn').click(); }
     });
-
-    async function resetAllData(){
-      try{
-        await setCounter(0);
-        await setClientsMap({});
-        await setBons([]);
-        localStorage.removeItem('bi_logo');
-        console.info('Données réinitialisées.');
-      }catch(e){
-        console.warn('Erreur reset:', e);
-      }
-    }
   </script>
 </body>
 </html>
